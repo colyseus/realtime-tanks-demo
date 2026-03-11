@@ -74,6 +74,8 @@ export class TankEntity {
   shieldActive = false;
   shieldBreakTime = 0;
   shieldFragments: THREE.Mesh[] = [];
+  explosionTime = 0;
+  explosionParts: THREE.Object3D[] = [];
   team = 0;
 
   constructor(team: number) {
@@ -302,11 +304,128 @@ export class TankEntity {
       this.shieldBubble.visible = false;
     }
 
-    // Dead state
-    if (this.dead) {
-      this.group.visible = Date.now() % 500 < 250;
-    } else {
-      this.group.visible = true;
+    // Explosion animation
+    if (this.explosionTime > 0) {
+      const elapsed = Date.now() - this.explosionTime;
+      const duration = 600;
+      const t = Math.min(elapsed / duration, 1);
+      // Ease-out: fast start, slow end
+      const e = 1 - (1 - t) * (1 - t);
+
+      for (const part of this.explosionParts) {
+        const data = part as any;
+        if (data._type === "fireball") {
+          const s = 1.0 + e * 3.0;
+          part.scale.set(s, s, s);
+          const mat = (part as THREE.Mesh).material as THREE.MeshBasicMaterial;
+          mat.opacity = 0.9 * (1 - t * t);
+          const r = 1.0 - t * 0.6;
+          const g = 0.6 - t * 0.6;
+          const b = 0.1 * (1 - t);
+          mat.color.setRGB(r, Math.max(0, g), Math.max(0, b));
+        } else if (data._type === "debris") {
+          const vel = data._vel as THREE.Vector3;
+          part.position.add(vel.clone().multiplyScalar(0.016));
+          vel.y -= 0.08;
+          part.rotation.x += data._spin.x;
+          part.rotation.z += data._spin.z;
+          const mat = (part as THREE.Mesh).material as THREE.MeshBasicMaterial;
+          mat.opacity = 0.9 * (1 - t);
+        } else if (data._type === "ring") {
+          const s = 1.0 + e * 4.0;
+          part.scale.set(s, 1, s);
+          const mat = (part as THREE.Mesh).material as THREE.MeshBasicMaterial;
+          mat.opacity = 0.5 * (1 - t);
+        }
+      }
+
+      if (t >= 1) {
+        this.explosionTime = 0;
+        for (const part of this.explosionParts) {
+          this.group.remove(part);
+          if ((part as THREE.Mesh).geometry) (part as THREE.Mesh).geometry.dispose();
+        }
+        this.explosionParts = [];
+      }
+    }
+
+    // Dead state — blink individual parts, not the whole group
+    const tankVisible = !this.dead || Date.now() % 500 < 250;
+    this.body.visible = tankVisible;
+    this.turret.visible = tankVisible;
+    this.teamIndicator.visible = tankVisible;
+    this.healthBar.visible = tankVisible;
+    this.healthBg.visible = tankVisible;
+  }
+
+  setDead(val: boolean) {
+    const wasDead = this.dead;
+    this.dead = val;
+
+    if (val && !wasDead) {
+      this.explosionTime = Date.now();
+
+      // Fireball — expanding glowing sphere
+      const fbGeo = new THREE.SphereGeometry(0.5, 10, 10);
+      const fbMat = new THREE.MeshBasicMaterial({
+        color: 0xffaa22,
+        transparent: true,
+        opacity: 0.8,
+        depthWrite: false,
+      });
+      const fireball = new THREE.Mesh(fbGeo, fbMat);
+      fireball.position.y = 1.0;
+      (fireball as any)._type = "fireball";
+      this.group.add(fireball);
+      this.explosionParts.push(fireball);
+
+      // Shockwave ring on the ground
+      const ringGeo = new THREE.RingGeometry(0.4, 0.7, 20);
+      ringGeo.rotateX(-Math.PI / 2);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0xff6600,
+        transparent: true,
+        opacity: 0.5,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.position.y = 0.05;
+      (ring as any)._type = "ring";
+      this.group.add(ring);
+      this.explosionParts.push(ring);
+
+      // Debris chunks
+      for (let i = 0; i < 10; i++) {
+        const angle = (i / 10) * Math.PI * 2 + Math.random() * 0.5;
+        const size = 0.1 + Math.random() * 0.15;
+        const geo = new THREE.BoxGeometry(size, size, size);
+        const mat = new THREE.MeshBasicMaterial({
+          color: Math.random() > 0.5 ? 0x444444 : 0x886633,
+          transparent: true,
+          opacity: 0.9,
+          depthWrite: false,
+        });
+        const debris = new THREE.Mesh(geo, mat);
+        debris.position.set(
+          Math.cos(angle) * 0.4,
+          0.5 + Math.random() * 1.0,
+          Math.sin(angle) * 0.4
+        );
+        const speed = 0.15 + Math.random() * 0.15;
+        (debris as any)._type = "debris";
+        (debris as any)._vel = new THREE.Vector3(
+          Math.cos(angle) * speed,
+          0.12 + Math.random() * 0.15,
+          Math.sin(angle) * speed
+        );
+        (debris as any)._spin = {
+          x: (Math.random() - 0.5) * 0.3,
+          z: (Math.random() - 0.5) * 0.3,
+        };
+        this.group.add(debris);
+        this.explosionParts.push(debris);
+      }
     }
   }
 

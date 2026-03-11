@@ -21,16 +21,73 @@ export class Sound {
     this.noise(0.12, 1200, 300, 0.2);
   }
 
-  hit() {
-    this.noise(0.15, 200, 60, 0.25);
+  hit(volume = 0.25) {
+    this.noise(0.15, 200, 60, volume);
   }
 
   explosion() {
-    this.noise(0.4, 120, 30, 0.35);
+    const now = this.ctx.currentTime;
+
+    // Low rumble layer
+    const bass = this.ctx.createOscillator();
+    const bassGain = this.ctx.createGain();
+    bass.type = "square";
+    bass.frequency.setValueAtTime(60 + Math.random() * 30, now);
+    bass.frequency.exponentialRampToValueAtTime(18, now + 0.8);
+    bassGain.gain.setValueAtTime(0.3, now);
+    bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+    bass.connect(bassGain).connect(this.ctx.destination);
+    bass.start(now);
+    bass.stop(now + 0.8);
+
+    // Mid crackle layer with frequency jitter
+    for (let i = 0; i < 3; i++) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "sawtooth";
+      const startFreq = 100 + Math.random() * 200;
+      osc.frequency.setValueAtTime(startFreq, now);
+      // Staggered random drops
+      const dropTime = 0.15 + Math.random() * 0.2;
+      osc.frequency.exponentialRampToValueAtTime(20 + Math.random() * 30, now + dropTime);
+      osc.frequency.setValueAtTime(60 + Math.random() * 80, now + dropTime);
+      osc.frequency.exponentialRampToValueAtTime(15, now + 0.7);
+      gain.gain.setValueAtTime(0.12, now + i * 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5 + Math.random() * 0.3);
+      osc.connect(gain).connect(this.ctx.destination);
+      osc.start(now + i * 0.03);
+      osc.stop(now + 0.8);
+    }
+
+    // High sizzle
+    const hi = this.ctx.createOscillator();
+    const hiGain = this.ctx.createGain();
+    hi.type = "sawtooth";
+    hi.frequency.setValueAtTime(300 + Math.random() * 200, now);
+    hi.frequency.exponentialRampToValueAtTime(30, now + 0.25);
+    hiGain.gain.setValueAtTime(0.15, now);
+    hiGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    hi.connect(hiGain).connect(this.ctx.destination);
+    hi.start(now);
+    hi.stop(now + 0.25);
   }
 
-  pickup() {
-    this.tone(0.1, 600, 900, 0.15);
+  pickupRepair() {
+    // Bright rising double chime
+    this.tone(0.12, 520, 780, 0.13);
+    setTimeout(() => this.tone(0.14, 780, 1040, 0.13), 80);
+  }
+
+  pickupShield() {
+    // Crystalline sweep
+    this.tone(0.18, 400, 1200, 0.1);
+    setTimeout(() => this.tone(0.15, 900, 1400, 0.08), 50);
+  }
+
+  pickupDamage() {
+    // Punchy low thud + high click
+    this.noise(0.1, 300, 100, 0.2);
+    setTimeout(() => this.noise(0.06, 900, 400, 0.12), 40);
   }
 
   private noise(

@@ -151,23 +151,33 @@ export class Game {
       callbacks.listen(tank, "y", (val: number) => (entity.targetZ = val));
       callbacks.listen(tank, "angle", (val: number) => (entity.targetAngle = val));
       callbacks.listen(tank, "dead", (val: boolean, prev: boolean) => {
-        entity.dead = val;
+        entity.setDead(val);
+        if (val && prev === false) {
+          this.sound.explosion();
+        }
         if (key === this.mySessionId) {
-          // Only show death screen when transitioning from alive to dead
           if (val && prev === false) {
             this.deathScreen.style.display = "block";
-            this.sound.explosion();
           } else if (!val) {
             this.deathScreen.style.display = "none";
           }
         }
       });
-      callbacks.listen(tank, "hp", (val: number) => {
-        const prev = entity.dead ? 10 : val;
+      callbacks.listen(tank, "hp", (val: number, prev: number) => {
         entity.setHealth(val);
+        if (val < prev) {
+          // Volume based on distance from local player
+          const myTank = this.tanks.get(this.mySessionId);
+          if (myTank) {
+            const dx = entity.group.position.x - myTank.group.position.x;
+            const dz = entity.group.position.z - myTank.group.position.z;
+            const dist = Math.sqrt(dx * dx + dz * dz);
+            const vol = Math.max(0, 0.25 * (1 - dist / 25));
+            if (vol > 0.01) this.sound.hit(vol);
+          }
+        }
         if (key === this.mySessionId) {
           this.healthFill.style.width = `${Math.max(0, val) * 10}%`;
-          if (val < prev) this.sound.hit();
         }
       });
       callbacks.listen(tank, "shield", (val: number) => {
@@ -294,12 +304,14 @@ export class Game {
       this.pickableMeshes.set(key, group);
     });
 
-    callbacks.onRemove("pickables", (_pick, key: string) => {
+    callbacks.onRemove("pickables", (pick, key: string) => {
       const group = this.pickableMeshes.get(key);
       if (group) {
         this.scene.remove(group);
         this.pickableMeshes.delete(key);
-        this.sound.pickup();
+        if (pick.type === "repair") this.sound.pickupRepair();
+        else if (pick.type === "shield") this.sound.pickupShield();
+        else if (pick.type === "damage") this.sound.pickupDamage();
       }
     });
 
