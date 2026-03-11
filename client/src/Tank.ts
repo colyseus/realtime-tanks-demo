@@ -62,6 +62,7 @@ export class TankEntity {
   teamIndicator: THREE.Mesh;
   healthBar: THREE.Sprite;
   healthBg: THREE.Sprite;
+  shieldBubble: THREE.Mesh;
 
   targetX = 0;
   targetZ = 0;
@@ -70,6 +71,9 @@ export class TankEntity {
   targetBodyAngle = 0;
   currentBodyAngle = 0;
   dead = false;
+  shieldActive = false;
+  shieldBreakTime = 0;
+  shieldFragments: THREE.Mesh[] = [];
   team = 0;
 
   constructor(team: number) {
@@ -150,6 +154,20 @@ export class TankEntity {
     this.healthBar.scale.set(1.4, 0.15, 1);
     this.healthBar.position.y = 2.2;
     this.group.add(this.healthBar);
+
+    // Shield bubble (translucent cylinder force field)
+    const shieldGeo = new THREE.CylinderGeometry(1.4, 1.4, 2.6, 20, 1, true);
+    const shieldMat = new THREE.MeshBasicMaterial({
+      color: 0x44ccff,
+      transparent: true,
+      opacity: 0.12,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    this.shieldBubble = new THREE.Mesh(shieldGeo, shieldMat);
+    this.shieldBubble.position.y = 1.3;
+    this.shieldBubble.visible = false;
+    this.group.add(this.shieldBubble);
   }
 
   private createFallbackTank() {
@@ -237,11 +255,97 @@ export class TankEntity {
     this.turret.position.x = mountZ * Math.sin(this.currentBodyAngle);
     this.turret.position.z = mountZ * Math.cos(this.currentBodyAngle);
 
+    // Shield bubble pulse
+    if (this.shieldActive) {
+      this.shieldBubble.visible = true;
+      const pulse = 0.10 + Math.sin(Date.now() * 0.004) * 0.05;
+      (this.shieldBubble.material as THREE.MeshBasicMaterial).opacity = pulse;
+      (this.shieldBubble.material as THREE.MeshBasicMaterial).color.setHex(0x44ccff);
+      this.shieldBubble.scale.set(1, 1, 1);
+      this.shieldBubble.rotation.y += 0.008;
+    } else if (this.shieldBreakTime > 0) {
+      // Shield break animation
+      const elapsed = Date.now() - this.shieldBreakTime;
+      const duration = 250;
+      const t = Math.min(elapsed / duration, 1);
+
+      // Bubble expands and flashes then fades
+      this.shieldBubble.visible = true;
+      const scale = 1 + t * 0.5;
+      this.shieldBubble.scale.set(scale, 1 + t * 0.15, scale);
+      const mat = this.shieldBubble.material as THREE.MeshBasicMaterial;
+      mat.color.setHex(0xffffff);
+      mat.opacity = 0.35 * (1 - t);
+
+      // Animate fragments outward
+      for (const frag of this.shieldFragments) {
+        const vel = (frag as any)._vel as THREE.Vector3;
+        frag.position.add(vel.clone().multiplyScalar(0.016));
+        vel.y -= 0.06; // gravity
+        const fragMat = frag.material as THREE.MeshBasicMaterial;
+        fragMat.opacity = 0.7 * (1 - t);
+        frag.rotation.x += 0.1;
+        frag.rotation.z += 0.15;
+      }
+
+      if (t >= 1) {
+        this.shieldBreakTime = 0;
+        this.shieldBubble.visible = false;
+        // Clean up fragments
+        for (const frag of this.shieldFragments) {
+          this.group.remove(frag);
+          frag.geometry.dispose();
+        }
+        this.shieldFragments = [];
+      }
+    } else {
+      this.shieldBubble.visible = false;
+    }
+
     // Dead state
     if (this.dead) {
       this.group.visible = Date.now() % 500 < 250;
     } else {
       this.group.visible = true;
+    }
+  }
+
+  setShield(val: number) {
+    const wasActive = this.shieldActive;
+    this.shieldActive = val > 0;
+
+    // Shield just broke — trigger break animation
+    if (wasActive && !this.shieldActive) {
+      this.shieldBreakTime = Date.now();
+
+      // Spawn shard fragments flying outward
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const geo = new THREE.PlaneGeometry(0.25, 0.35);
+        const mat = new THREE.MeshBasicMaterial({
+          color: 0x44ccff,
+          transparent: true,
+          opacity: 0.7,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        const frag = new THREE.Mesh(geo, mat);
+        frag.position.set(
+          Math.cos(angle) * 1.4,
+          1.0 + Math.random() * 1.2,
+          Math.sin(angle) * 1.4
+        );
+        frag.rotation.set(Math.random() * Math.PI, angle, Math.random() * Math.PI);
+        // Store velocity on the mesh
+        const speed = 0.12 + Math.random() * 0.08;
+        (frag as any)._vel = new THREE.Vector3(
+          Math.cos(angle) * speed,
+          0.06 + Math.random() * 0.1,
+          Math.sin(angle) * speed
+        );
+        this.group.add(frag);
+        this.shieldFragments.push(frag);
+      }
     }
   }
 

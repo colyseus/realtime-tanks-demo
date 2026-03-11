@@ -171,6 +171,7 @@ export class Game {
         }
       });
       callbacks.listen(tank, "shield", (val: number) => {
+        entity.setShield(val);
         if (key === this.mySessionId) {
           this.shieldFill.style.width = `${Math.max(0, val) * 10}%`;
         }
