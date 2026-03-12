@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_constants",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_constants",
+  "parent":{
+    "name":"TankBattle",
+    "path":"TankBattle.yyp",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

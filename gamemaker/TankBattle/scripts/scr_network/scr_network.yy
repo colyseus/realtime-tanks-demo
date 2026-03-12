@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_network",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_network",
+  "parent":{
+    "name":"TankBattle",
+    "path":"TankBattle.yyp",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

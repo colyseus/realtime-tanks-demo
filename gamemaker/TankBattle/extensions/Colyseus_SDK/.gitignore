@@ -1,0 +1,7 @@
+# Colyseus SDK binaries — download from:
+# https://github.com/colyseus/native-sdk/releases?q=%22GameMaker+SDK%22
+*.dylib
+*.so
+*.dll
+*.pdb
+colyseus_wasm.js

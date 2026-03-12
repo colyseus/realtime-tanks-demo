@@ -1,0 +1,7 @@
+{
+  "FolderOrderSettings":[],
+  "ResourceOrderSettings":[
+    {"name":"Colyseus_SDK","order":2,"path":"extensions/Colyseus_SDK/Colyseus_SDK.yy",},
+    {"name":"Colyseus","order":1,"path":"scripts/Colyseus/Colyseus.yy",},
+  ],
+}
