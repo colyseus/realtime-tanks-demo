@@ -1,5 +1,7 @@
 # PlayCanvas Client
 
+![Screenshot](screenshot.webp)
+
 3D web client built with PlayCanvas Engine, TypeScript, and Vite.
 
 ## Setup

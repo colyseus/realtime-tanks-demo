@@ -1,5 +1,7 @@
 # Three.js Client
 
+![Screenshot](screenshot.webp)
+
 3D web client built with Three.js, TypeScript, and Vite.
 
 ## Setup

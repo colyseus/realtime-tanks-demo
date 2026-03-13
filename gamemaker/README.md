@@ -1,5 +1,7 @@
 # GameMaker Client
 
+![Screenshot](screenshot.webp)
+
 2D client built with GameMaker Studio 2 using [Kenney Top-Down Tanks](https://kenney.nl/assets/top-down-tanks-redux) sprites.
 
 ## Setup
