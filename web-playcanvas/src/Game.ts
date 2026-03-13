@@ -339,6 +339,14 @@ export class Game {
 
     // ── Pickables ──
     callbacks.onAdd("pickables", (pick, key: string) => {
+      // Reuse existing entity if available (was hidden on remove)
+      const existing = this.pickableEntities.get(key);
+      if (existing) {
+        existing.setLocalPosition(pick.x, 0.6, pick.y);
+        existing.enabled = true;
+        return;
+      }
+
       const colorMap: Record<string, pc.Color> = {
         repair: new pc.Color(0.267, 1, 0.267),
         damage: new pc.Color(1, 0.267, 0.267),
@@ -401,8 +409,7 @@ export class Game {
     callbacks.onRemove("pickables", (pick, key: string) => {
       const entity = this.pickableEntities.get(key);
       if (entity) {
-        entity.destroy();
-        this.pickableEntities.delete(key);
+        entity.enabled = false;
         if (pick.type === "repair") this.sound.pickupRepair();
         else if (pick.type === "shield") this.sound.pickupShield();
         else if (pick.type === "damage") this.sound.pickupDamage();

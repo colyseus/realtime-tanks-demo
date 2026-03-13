@@ -228,7 +228,6 @@ function litMaterial(color: pc.Color, opts: { roughness?: number; opacity?: numb
   return mat;
 }
 
-// Shared shield pickable mesh — created lazily
 let shieldPickableMesh: pc.Mesh | null = null;
 
 export function getShieldPickableMesh(device: pc.GraphicsDevice): pc.Mesh {
