@@ -2,6 +2,8 @@
 
 A 2D top-down game client for [Tank Battle Multiplayer](../README.md) built with [Defold](https://defold.com/) and the [Colyseus Defold SDK](https://docs.colyseus.io/getting-started/defold).
 
+![screenshot](screenshot.webp)
+
 ## Setup
 
 1. Open the project in the [Defold Editor](https://defold.com/download/)
