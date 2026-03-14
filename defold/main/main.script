@@ -255,12 +255,13 @@ function update(self, dt)
 		end
 		go.set_rotation(vmath.quat_rotation_z(tank.body_angle), tank.id)
 
-		-- Dead blink
+		-- Dead blink / alive visibility
+		local visible = true
 		if tank.dead then
-			local visible = (math.floor(socket.gettime() * 4) % 2 == 0)
-			msg.post(msg.url(nil, tank.id, "body"), visible and "enable" or "disable")
-			msg.post(msg.url(nil, tank.id, "turret"), visible and "enable" or "disable")
+			visible = (math.floor(socket.gettime() * 4) % 2 == 0)
 		end
+		msg.post(msg.url(nil, tank.id, "body"), visible and "enable" or "disable")
+		msg.post(msg.url(nil, tank.id, "turret"), visible and "enable" or "disable")
 	end
 
 	-- Interpolate bullets
