@@ -1,73 +1,44 @@
 name: "main"
-instances {
+embedded_instances {
   id: "game"
-  prototype: ""
-  children: "camera"
-  components {
-    id: "script"
-    component: "/main/main.script"
-  }
-  components {
-    id: "tank_factory"
-    component: ""
-    properties {
-      id: "prototype"
-      value: "/main/tank.go"
-      type: PROPERTY_TYPE_HASH
-    }
-  }
-  components {
-    id: "bullet_factory"
-    component: ""
-    properties {
-      id: "prototype"
-      value: "/main/bullet.go"
-      type: PROPERTY_TYPE_HASH
-    }
-  }
-  components {
-    id: "pickable_factory"
-    component: ""
-    properties {
-      id: "prototype"
-      value: "/main/pickable.go"
-      type: PROPERTY_TYPE_HASH
-    }
-  }
-  components {
-    id: "block_factory"
-    component: ""
-    properties {
-      id: "prototype"
-      value: "/main/block.go"
-      type: PROPERTY_TYPE_HASH
-    }
-  }
+  data: "components {\n"
+  "  id: \"script\"\n"
+  "  component: \"/main/main.script\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"tank_factory\"\n"
+  "  type: \"factory\"\n"
+  "  data: \"prototype: \\\"/main/tank.go\\\"\\n\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"bullet_factory\"\n"
+  "  type: \"factory\"\n"
+  "  data: \"prototype: \\\"/main/bullet.go\\\"\\n\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"pickable_factory\"\n"
+  "  type: \"factory\"\n"
+  "  data: \"prototype: \\\"/main/pickable.go\\\"\\n\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"block_factory\"\n"
+  "  type: \"factory\"\n"
+  "  data: \"prototype: \\\"/main/block.go\\\"\\n\"\n"
+  "}\n"
+  ""
 }
-instances {
+embedded_instances {
   id: "camera"
-  components {
-    id: "camera"
-    component: ""
-    properties {
-      id: "fov"
-      value: "45.0"
-      type: PROPERTY_TYPE_NUMBER
-    }
-    properties {
-      id: "near_z"
-      value: "-1.0"
-      type: PROPERTY_TYPE_NUMBER
-    }
-    properties {
-      id: "far_z"
-      value: "1.0"
-      type: PROPERTY_TYPE_NUMBER
-    }
-    properties {
-      id: "orthographic_projection"
-      value: "1"
-      type: PROPERTY_TYPE_BOOLEAN
-    }
-  }
+  data: "embedded_components {\n"
+  "  id: \"camera\"\n"
+  "  type: \"camera\"\n"
+  "  data: \"aspect_ratio: 1.0\\n"
+  "fov: 0.7854\\n"
+  "near_z: -1.0\\n"
+  "far_z: 1.0\\n"
+  "orthographic_projection: 1\\n"
+  "orthographic_zoom: 1.0\\n"
+  "\"\n"
+  "}\n"
+  ""
 }
