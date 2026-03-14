@@ -197,12 +197,14 @@ local function bind_room_events(self, room)
 
 	-- Teams
 	cb:on_add("teams", function(team, idx)
-		-- Track this team's score
-		self.team_scores[idx] = team.score or 0
+		-- idx may be string or number from ArraySchema; convert to int
+		local team_id = tonumber(idx) or idx
+		print("team on_add idx=" .. tostring(idx) .. " type=" .. type(idx) .. " team_id=" .. tostring(team_id))
+		self.team_scores[team_id] = team.score or 0
 		update_leaderboard(self)
 
 		cb:listen(team, "score", function(val)
-			self.team_scores[idx] = val
+			self.team_scores[team_id] = val
 			update_leaderboard(self)
 		end)
 	end)
