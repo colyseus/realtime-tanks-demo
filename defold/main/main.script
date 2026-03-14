@@ -165,8 +165,8 @@ local function bind_room_events(self, room)
 			if t then
 				local was_alive = not t.dead
 				t.dead = val
-				if val and was_alive then
-					-- Explosion!
+				-- Only explode on combat death, not round reset
+				if val and was_alive and not self.winner_active then
 					local pos = go.get_position(t.body_id)
 					spawn_explosion(self, pos.x, pos.y)
 				end
