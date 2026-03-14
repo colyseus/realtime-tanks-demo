@@ -67,18 +67,15 @@ local function build_level(self)
 end
 
 local function update_leaderboard(self)
-	if not self.room then return end
-	local teams = {}
-	for i = 0, 3 do
-		local team = self.room.state.teams[i]
-		if team then
-			table.insert(teams, { id = i, score = team.score })
-		end
+	-- Use tracked team scores from on_add callbacks
+	local sorted = {}
+	for id, score in pairs(self.team_scores) do
+		table.insert(sorted, { id = id, score = score })
 	end
-	table.sort(teams, function(a, b) return a.score > b.score end)
+	table.sort(sorted, function(a, b) return a.score > b.score end)
 
 	local lines = {}
-	for rank, t in ipairs(teams) do
+	for _, t in ipairs(sorted) do
 		table.insert(lines, (TEAM_NAMES[t.id] or "?") .. ": " .. t.score)
 	end
 	msg.post("hud#gui", "update_leaderboard", { text = table.concat(lines, "\n") })
@@ -89,11 +86,14 @@ local function show_announcement(self, text, duration)
 end
 
 local function show_winner(self, winner_team_id)
-	local my_tank = self.room.state.tanks[self.my_session_id]
+	self.winner_active = true
+	local my_tank = self.tanks[self.my_session_id]
 	local is_winner = my_tank and my_tank.team == winner_team_id
 	local text = is_winner and "VICTORY" or "DEFEAT"
 	local team_name = TEAM_NAMES[winner_team_id] or "?"
 	show_announcement(self, text .. "\n" .. team_name .. " Team Wins", 3.0)
+	-- Reset winner flag after announcement
+	timer.delay(3.0, false, function() self.winner_active = false end)
 end
 
 local function bind_room_events(self, room)
@@ -132,7 +132,7 @@ local function bind_room_events(self, room)
 		cb:listen(tank, "dead", function(val)
 			local t = self.tanks[key]
 			if t then t.dead = val end
-			if key == self.my_session_id and val then
+			if key == self.my_session_id and val and not self.winner_active then
 				show_announcement(self, "DESTROYED\nRespawning...", 2.0)
 			end
 		end)
@@ -197,14 +197,19 @@ local function bind_room_events(self, room)
 
 	-- Teams
 	cb:on_add("teams", function(team, idx)
+		-- Track this team's score
+		self.team_scores[idx] = team.score or 0
+		update_leaderboard(self)
+
 		cb:listen(team, "score", function(val)
+			self.team_scores[idx] = val
 			update_leaderboard(self)
 		end)
 	end)
 
 	-- Winner
-	cb:listen("winnerTeam", function(val)
-		if val >= 0 then
+	cb:listen("winnerTeam", function(val, prev)
+		if type(val) == "number" and val >= 0 and val ~= prev then
 			show_winner(self, val)
 		end
 	end)
@@ -266,6 +271,8 @@ function init(self)
 	self.last_dir_y = -999
 	self.last_angle = -999
 	self.leaderboard_text = ""
+	self.team_scores = {}
+	self.winner_active = false
 
 	build_level(self)
 
