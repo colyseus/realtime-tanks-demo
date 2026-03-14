@@ -41,19 +41,19 @@ local LEVEL = {
 -- ── Effects ──
 
 local function spawn_explosion(self, x, y)
-	-- Fireball: expanding orange circle
+	-- Fireball
 	local fb = factory.create("#pickable_factory", vmath.vector3(x, y, 0.8))
 	sprite.set_constant(msg.url(nil, fb, "sprite"), "tint", vmath.vector4(1, 0.6, 0.1, 0.9))
-	go.set_scale(vmath.vector3(2, 2, 1), fb)
-	go.animate(fb, "scale", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(20, 20, 1), go.EASING_OUTQUAD, 0.5, 0, function()
+	go.set_scale(vmath.vector3(1, 1, 1), fb)
+	go.animate(fb, "scale", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(8, 8, 1), go.EASING_OUTQUAD, 0.4, 0, function()
 		go.delete(fb)
 	end)
 
-	-- Ring: expanding outline
+	-- Ring
 	local ring = factory.create("#pickable_factory", vmath.vector3(x, y, 0.7))
 	sprite.set_constant(msg.url(nil, ring, "sprite"), "tint", vmath.vector4(1, 0.3, 0, 0.6))
-	go.set_scale(vmath.vector3(4, 4, 1), ring)
-	go.animate(ring, "scale", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(30, 30, 1), go.EASING_OUTQUAD, 0.6, 0, function()
+	go.set_scale(vmath.vector3(2, 2, 1), ring)
+	go.animate(ring, "scale", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(12, 12, 1), go.EASING_OUTQUAD, 0.5, 0, function()
 		go.delete(ring)
 	end)
 end
@@ -148,6 +148,10 @@ local function bind_room_events(self, room)
 			dead = tank.dead, team = tank.team, shield = 0, hp = tank.hp or 10,
 		}
 
+		-- Per-tank GUI bars
+		msg.post("hud#gui", "tank_bar_add", { key = key })
+		msg.post("hud#gui", "tank_bar_hp", { key = key, hp = tank.hp })
+
 		cb:listen(tank, "x", function(val)
 			local t = self.tanks[key]
 			if t then t.target_x = val * SCALE end
@@ -177,6 +181,7 @@ local function bind_room_events(self, room)
 		cb:listen(tank, "hp", function(val)
 			local t = self.tanks[key]
 			if t then t.hp = val end
+			msg.post("hud#gui", "tank_bar_hp", { key = key, hp = val })
 			if key == self.my_session_id then
 				msg.post("hud#gui", "update_hp", { hp = val })
 			end
@@ -190,6 +195,7 @@ local function bind_room_events(self, room)
 					play_shield_break(self, t)
 				end
 			end
+			msg.post("hud#gui", "tank_bar_shield", { key = key, shield = val })
 			if key == self.my_session_id then
 				msg.post("hud#gui", "update_shield", { shield = val })
 			end
@@ -207,6 +213,7 @@ local function bind_room_events(self, room)
 			go.delete(t.shield_id)
 			self.tanks[key] = nil
 		end
+		msg.post("hud#gui", "tank_bar_remove", { key = key })
 	end)
 
 	-- Bullets
@@ -399,6 +406,19 @@ function update(self, dt)
 	for key, pick in pairs(self.pickables) do
 		local s = 1.0 + math.sin(t * 3) * 0.1
 		go.set_scale(vmath.vector3(2 * s, 2 * s, 1), pick.id)
+	end
+
+	-- Update per-tank bar positions (world → screen)
+	local cam_pos = go.get_position("camera")
+	local sw = tonumber(sys.get_config("display.width"))
+	local sh = tonumber(sys.get_config("display.height"))
+	for key, tank in pairs(self.tanks) do
+		local pos = go.get_position(tank.body_id)
+		-- World to screen: offset from camera center, scaled by zoom
+		local screen_x = (pos.x - cam_pos.x) * ZOOM + sw / 2
+		local screen_y = (pos.y - cam_pos.y) * ZOOM + sh / 2 + 20 * ZOOM -- offset above tank
+		local visible = not tank.dead or (math.floor(socket.gettime() * 4) % 2 == 0)
+		msg.post("hud#gui", "tank_bar_pos", { key = key, x = screen_x, y = screen_y, visible = visible })
 	end
 
 	-- Camera follow with mouse look-ahead

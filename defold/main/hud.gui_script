@@ -1,5 +1,11 @@
+local ZOOM = 1.5
+local BAR_W = 40
+local BAR_H = 4
+local SHIELD_H = 3
+
 function init(self)
 	self.announcement_timer = 0
+	self.tank_bars = {} -- key -> { hp_bg, hp_fill, shield_bg, shield_fill, hp, shield }
 end
 
 function update(self, dt)
@@ -7,6 +13,82 @@ function update(self, dt)
 		self.announcement_timer = self.announcement_timer - dt
 		if self.announcement_timer <= 0 then
 			gui.set_text(gui.get_node("announcement"), "")
+		end
+	end
+end
+
+local function get_hp_color(pct)
+	if pct > 0.5 then
+		return vmath.vector4(0.27, 1, 0.27, 1)
+	elseif pct > 0.25 then
+		return vmath.vector4(1, 0.67, 0.27, 1)
+	else
+		return vmath.vector4(1, 0.27, 0.27, 1)
+	end
+end
+
+local function create_tank_bars(self, key)
+	-- HP background
+	local hp_bg = gui.new_box_node(vmath.vector3(0, 0, 0), vmath.vector3(BAR_W, BAR_H, 0))
+	gui.set_color(hp_bg, vmath.vector4(0, 0, 0, 0.5))
+	gui.set_pivot(hp_bg, gui.PIVOT_CENTER)
+
+	-- HP fill
+	local hp_fill = gui.new_box_node(vmath.vector3(0, 0, 0), vmath.vector3(BAR_W, BAR_H, 0))
+	gui.set_color(hp_fill, vmath.vector4(0.27, 1, 0.27, 1))
+	gui.set_pivot(hp_fill, gui.PIVOT_W)
+	gui.set_parent(hp_fill, hp_bg)
+	gui.set_position(hp_fill, vmath.vector3(-BAR_W / 2, 0, 0))
+
+	-- Shield background
+	local shield_bg = gui.new_box_node(vmath.vector3(0, BAR_H + 1, 0), vmath.vector3(BAR_W, SHIELD_H, 0))
+	gui.set_color(shield_bg, vmath.vector4(0, 0, 0, 0.3))
+	gui.set_pivot(shield_bg, gui.PIVOT_CENTER)
+	gui.set_parent(shield_bg, hp_bg)
+	gui.set_enabled(shield_bg, false)
+
+	-- Shield fill
+	local shield_fill = gui.new_box_node(vmath.vector3(0, 0, 0), vmath.vector3(BAR_W, SHIELD_H, 0))
+	gui.set_color(shield_fill, vmath.vector4(0.27, 0.53, 1, 1))
+	gui.set_pivot(shield_fill, gui.PIVOT_W)
+	gui.set_parent(shield_fill, shield_bg)
+	gui.set_position(shield_fill, vmath.vector3(-BAR_W / 2, 0, 0))
+
+	self.tank_bars[key] = {
+		hp_bg = hp_bg, hp_fill = hp_fill,
+		shield_bg = shield_bg, shield_fill = shield_fill,
+		hp = 10, shield = 0
+	}
+end
+
+local function remove_tank_bars(self, key)
+	local bars = self.tank_bars[key]
+	if bars then
+		gui.delete_node(bars.hp_bg)
+		-- children deleted automatically
+		self.tank_bars[key] = nil
+	end
+end
+
+local function update_tank_bar_values(self, key, hp, shield)
+	local bars = self.tank_bars[key]
+	if not bars then return end
+
+	if hp ~= nil then
+		bars.hp = hp
+		local pct = math.max(0, hp / 10)
+		gui.set_size(bars.hp_fill, vmath.vector3(BAR_W * pct, BAR_H, 0))
+		gui.set_color(bars.hp_fill, get_hp_color(pct))
+	end
+
+	if shield ~= nil then
+		bars.shield = shield
+		if shield > 0 then
+			gui.set_enabled(bars.shield_bg, true)
+			local pct = math.max(0, shield / 10)
+			gui.set_size(bars.shield_fill, vmath.vector3(BAR_W * pct, SHIELD_H, 0))
+		else
+			gui.set_enabled(bars.shield_bg, false)
 		end
 	end
 end
@@ -20,27 +102,41 @@ function on_message(self, message_id, message)
 		self.announcement_timer = message.duration or 3.0
 
 	elseif message_id == hash("update_hp") then
+		-- Player's own bottom bar
 		local pct = math.max(0, message.hp / 10)
 		local fill = gui.get_node("hp_bar_fill")
 		gui.set_size(fill, vmath.vector3(200 * pct, 12, 0))
-		-- Color: green > 50%, orange > 25%, red below
-		if pct > 0.5 then
-			gui.set_color(fill, vmath.vector4(0.27, 1, 0.27, 1))
-		elseif pct > 0.25 then
-			gui.set_color(fill, vmath.vector4(1, 0.67, 0.27, 1))
-		else
-			gui.set_color(fill, vmath.vector4(1, 0.27, 0.27, 1))
-		end
+		gui.set_color(fill, get_hp_color(pct))
 
 	elseif message_id == hash("update_shield") then
 		local bg = gui.get_node("shield_bar_bg")
 		local fill = gui.get_node("shield_bar_fill")
 		if message.shield > 0 then
 			gui.set_enabled(bg, true)
-			local pct = math.max(0, message.shield / 10)
-			gui.set_size(fill, vmath.vector3(200 * pct, 6, 0))
+			gui.set_size(fill, vmath.vector3(200 * math.max(0, message.shield / 10), 6, 0))
 		else
 			gui.set_enabled(bg, false)
+		end
+
+	elseif message_id == hash("tank_bar_add") then
+		create_tank_bars(self, message.key)
+
+	elseif message_id == hash("tank_bar_remove") then
+		remove_tank_bars(self, message.key)
+
+	elseif message_id == hash("tank_bar_hp") then
+		update_tank_bar_values(self, message.key, message.hp, nil)
+
+	elseif message_id == hash("tank_bar_shield") then
+		update_tank_bar_values(self, message.key, nil, message.shield)
+
+	elseif message_id == hash("tank_bar_pos") then
+		-- Position bar above tank in screen space
+		local bars = self.tank_bars[message.key]
+		if bars then
+			gui.set_position(bars.hp_bg, vmath.vector3(message.x, message.y, 0))
+			local visible = message.visible
+			gui.set_enabled(bars.hp_bg, visible)
 		end
 	end
 end
