@@ -160,19 +160,15 @@ local function bind_room_events(self, room)
 			local t = self.tanks[key]
 			if t then t.turret_angle = -val * (math.pi / 180) end
 		end)
-		cb:listen(tank, "dead", function(val, prev)
+		cb:listen(tank, "dead", function(val)
 			local t = self.tanks[key]
-			if t then
-				local was_alive = not t.dead
-				t.dead = val
-				-- Only explode on combat death, not round reset
-				if val and was_alive and not self.winner_active then
-					local pos = go.get_position(t.body_id)
-					spawn_explosion(self, pos.x, pos.y)
-				end
-			end
-			if key == self.my_session_id then
-				if val and not self.winner_active then
+			if not t then return end
+			local was_alive = not t.dead
+			t.dead = val
+			if val and was_alive then
+				local pos = go.get_position(t.body_id)
+				spawn_explosion(self, pos.x, pos.y)
+				if key == self.my_session_id and not self.winner_active then
 					show_announcement(self, "DESTROYED\nRespawning...", 2.0)
 				end
 			end
