@@ -130,7 +130,7 @@ local function bind_room_events(self, room)
 		end)
 		cb:listen(tank, "angle", function(val)
 			local t = self.tanks[key]
-			if t then t.turret_angle = val * (math.pi / 180) end
+			if t then t.turret_angle = -val * (math.pi / 180) end
 		end)
 		cb:listen(tank, "dead", function(val)
 			local t = self.tanks[key]
