@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Realtime Tanks Demo — Colyseus Multiplayer HTML5 Builds</title>
+  <meta name="description" content="Play the Colyseus Realtime Tanks multiplayer demo built with PlayCanvas, GameMaker, Godot, Defold, Haxe + Heaps, Unity, Three.js, Construct 3 — same server, different game engines.">
+  <meta name="keywords" content="Colyseus, multiplayer, realtime, tanks, game demo, HTML5, PlayCanvas, GameMaker, Godot, Defold, Haxe + Heaps, Unity, Three.js, Construct 3, WebSocket, game engine">
+  <link rel="canonical" href="https://colyseus.io/realtime-tanks-demo/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Realtime Tanks Demo — Colyseus Multiplayer">
+  <meta property="og:description" content="Play the same multiplayer tanks game built with 8 different game engines, all powered by a single Colyseus server.">
+  <meta property="og:image" content="https://colyseus.io/realtime-tanks-demo/web-playcanvas/screenshot.webp">
+  <meta property="og:url" content="https://colyseus.io/realtime-tanks-demo/">
+  <meta property="og:site_name" content="Colyseus">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Realtime Tanks Demo — Colyseus Multiplayer">
+  <meta name="twitter:description" content="Play the same multiplayer tanks game built with 8 different game engines, all powered by a single Colyseus server.">
+  <meta name="twitter:image" content="https://colyseus.io/realtime-tanks-demo/web-playcanvas/screenshot.webp">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
+      background: #0f1117;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+    .subtitle {
+      text-align: center;
+      color: #888;
+      margin-bottom: 2.5rem;
+      font-size: 0.95rem;
+    }
+    .subtitle a { color: #6ea8fe; text-decoration: none; }
+    .subtitle a:hover { text-decoration: underline; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #1a1d27;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.15s, box-shadow 0.15s;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .card img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+      background: #252830;
+    }
+    .card .label {
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .badge {
+      font-size: 0.7rem;
+      background: #2d3140;
+      color: #9ca3af;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 400;
+    }
+  </style>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JC2SXHE7WL"></script>
+  <script>
+    (function(){
+      const id = "G-JC2SXHE7WL";
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', id);
+    })();
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Realtime Tanks Demo — Colyseus Multiplayer HTML5 Builds",
+    "description": "Play the same multiplayer tanks game built with 8 different game engines, all powered by a single Colyseus server.",
+    "url": "https://colyseus.io/realtime-tanks-demo/",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Colyseus",
+      "url": "https://colyseus.io/"
+    },
+    "mainEntity": {
+      "@type": "SoftwareApplication",
+      "name": "Colyseus Realtime Tanks Demo",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+  }
+  </script>
+</head>
+<body>
+  <h1>Realtime Tanks Demo</h1>
+  <p class="subtitle">
+    HTML5 builds — same server, different game engines
+    &middot; <a href="https://github.com/colyseus/realtime-tanks-demo">GitHub</a>
+    &middot; Powered by <a href="https://colyseus.io/">Colyseus</a>
+  </p>
+  <div class="grid" id="grid">
+    <noscript>
+      <a class="card" href="web-playcanvas/"><div class="label">PlayCanvas</div></a>
+      <a class="card" href="gamemaker/"><div class="label">GameMaker</div></a>
+      <a class="card" href="godot/"><div class="label">Godot</div></a>
+      <a class="card" href="defold/"><div class="label">Defold</div></a>
+      <a class="card" href="haxe/"><div class="label">Haxe + Heaps</div></a>
+      <a class="card" href="unity/"><div class="label">Unity</div></a>
+      <a class="card" href="web-threejs/"><div class="label">Three.js</div></a>
+      <a class="card" href="construct3/"><div class="label">Construct 3</div></a>
+    </noscript>
+  </div>
+  <script>
+    const engines = [
+      { dir: "web-playcanvas", name: "PlayCanvas" },
+      { dir: "gamemaker", name: "GameMaker" },
+      { dir: "godot", name: "Godot" },
+      { dir: "defold", name: "Defold" },
+      { dir: "haxe", name: "Haxe + Heaps" },
+      { dir: "unity", name: "Unity" },
+      { dir: "web-threejs", name: "Three.js" },
+      { dir: "construct3", name: "Construct 3" },
+    ];
+    const grid = document.getElementById("grid");
+    engines.forEach(e => {
+      const a = document.createElement("a");
+      a.className = "card";
+      a.href = e.dir + "/";
+      const img = document.createElement("img");
+      img.src = e.dir + "/screenshot.webp";
+      img.alt = e.name;
+      img.loading = "lazy";
+      img.onerror = function() { this.style.display = "none"; };
+      a.appendChild(img);
+      const label = document.createElement("div");
+      label.className = "label";
+      label.textContent = e.name;
+      a.appendChild(label);
+      // Check if directory exists by probing index.html
+      fetch(e.dir + "/index.html", { method: "HEAD" })
+        .then(r => { if (!r.ok) a.style.display = "none"; })
+        .catch(() => { a.style.display = "none"; });
+      grid.appendChild(a);
+    });
+  </script>
+</body>
+</html>

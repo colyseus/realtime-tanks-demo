@@ -1,0 +1,70 @@
+const C3 = self.C3;
+self.C3_GetObjectRefTable = function () {
+	return [
+		C3.Plugins.Colyseus_SDK,
+		C3.Plugins.Sprite,
+		C3.Plugins.Text,
+		C3.Plugins.Keyboard,
+		C3.Plugins.Mouse,
+		C3.Plugins.System.Cnds.OnLayoutStart,
+		C3.Plugins.Colyseus_SDK.Acts.JoinOrCreateRoom,
+		C3.Plugins.Colyseus_SDK.Cnds.OnJoinRoom,
+		C3.JavaScriptInEvents.EventSheet1_Event2_Act1,
+		C3.Plugins.Colyseus_SDK.Cnds.OnJoinError,
+		C3.JavaScriptInEvents.EventSheet1_Event3_Act1,
+		C3.Plugins.Colyseus_SDK.Cnds.OnLeaveRoom,
+		C3.JavaScriptInEvents.EventSheet1_Event4_Act1,
+		C3.Plugins.Colyseus_SDK.Cnds.OnCollectionItemAdd,
+		C3.JavaScriptInEvents.EventSheet1_Event5_Act1,
+		C3.Plugins.Colyseus_SDK.Cnds.OnCollectionItemChange,
+		C3.JavaScriptInEvents.EventSheet1_Event6_Act1,
+		C3.Plugins.Colyseus_SDK.Cnds.OnCollectionItemRemove,
+		C3.JavaScriptInEvents.EventSheet1_Event7_Act1,
+		C3.JavaScriptInEvents.EventSheet1_Event8_Act1,
+		C3.JavaScriptInEvents.EventSheet1_Event9_Act1,
+		C3.JavaScriptInEvents.EventSheet1_Event10_Act1,
+		C3.JavaScriptInEvents.EventSheet1_Event11_Act1,
+		C3.JavaScriptInEvents.EventSheet1_Event12_Act1,
+		C3.JavaScriptInEvents.EventSheet1_Event13_Act1,
+		C3.JavaScriptInEvents.EventSheet1_Event14_Act1,
+		C3.Plugins.Colyseus_SDK.Cnds.OnChangeAtPath,
+		C3.JavaScriptInEvents.EventSheet1_Event15_Act1,
+		C3.Plugins.System.Cnds.EveryTick,
+		C3.JavaScriptInEvents.EventSheet1_Event16_Act1,
+		C3.Plugins.Colyseus_SDK.Acts.RoomSendJSON,
+		C3.Plugins.Colyseus_SDK.Acts.RoomSend
+	];
+};
+self.C3_JsPropNameTable = [
+	{Colyseus: 0},
+	{TankBody: 0},
+	{TankBarrel: 0},
+	{Bullet: 0},
+	{Block: 0},
+	{Shield: 0},
+	{PickRepair: 0},
+	{PickShield: 0},
+	{PickDamage: 0},
+	{HUDText: 0},
+	{Keyboard: 0},
+	{Mouse: 0},
+	{x: 0},
+	{y: 0},
+	{targetAngle: 0},
+	{shooting: 0}
+];
+
+self.InstanceType = {
+	Colyseus: class extends C3.Plugins.Colyseus_SDK.Instance {},
+	TankBody: class extends self.ISpriteInstance {},
+	TankBarrel: class extends self.ISpriteInstance {},
+	Bullet: class extends self.ISpriteInstance {},
+	Block: class extends self.ISpriteInstance {},
+	Shield: class extends self.ISpriteInstance {},
+	PickRepair: class extends self.ISpriteInstance {},
+	PickShield: class extends self.ISpriteInstance {},
+	PickDamage: class extends self.ISpriteInstance {},
+	HUDText: class extends self.ITextInstance {},
+	Keyboard: class extends self.IInstance {},
+	Mouse: class extends self.IInstance {}
+}
