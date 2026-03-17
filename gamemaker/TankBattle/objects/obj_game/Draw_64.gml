@@ -6,6 +6,20 @@ var gui_w = display_get_gui_width();
 var gui_h = display_get_gui_height();
 var cx = gui_w / 2;
 
+// --- Connection Status ---
+if (!global.net_connected) {
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    draw_set_color(c_gray);
+    draw_set_font(-1);
+    var _msg = (connect_error != "") ? connect_error : "Connecting...";
+    draw_text(cx, gui_h / 2, _msg);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+    exit;
+}
+
 // --- Health Bar ---
 if (instance_exists(my_tank) && !my_tank.dead) {
     var bar_w = 200;

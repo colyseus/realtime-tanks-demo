@@ -83,6 +83,10 @@ let hudWinText = null;
 let hudWinSubText = null;
 let hudLeaderboard = null; // array of { label, score } text instances
 
+// Connection status (in-engine HUDText on UI layer)
+let connectStatus = "Connecting..."; // null once connected, string while connecting/error
+let hudConnectText = null;
+
 // =============================================================================
 // Utility Functions
 // =============================================================================
@@ -445,6 +449,23 @@ function updateHUD(runtime) {
 	const vpW = runtime.viewportWidth;
 	const vpH = runtime.viewportHeight;
 
+	// --- Connection status (center screen) ---
+	if (connectStatus) {
+		if (!hudConnectText) {
+			hudConnectText = runtime.objects.HUDText.createInstance("UI", vpW / 2 - 200, vpH / 2 - 15);
+			hudConnectText.width = 400;
+			hudConnectText.height = 30;
+			hudConnectText.sizePt = 16;
+			hudConnectText.isBold = true;
+			hudConnectText.fontColor = [0.7, 0.7, 0.7];
+			hudConnectText.horizontalAlign = "center";
+		}
+		hudConnectText.text = connectStatus;
+		hudConnectText.isVisible = true;
+	} else if (hudConnectText) {
+		hudConnectText.isVisible = false;
+	}
+
 	// --- Leaderboard (top-right) ---
 	if (!hudLeaderboard) {
 		hudLeaderboard = [];
@@ -603,7 +624,13 @@ globalThis.game = {
 		const c = this.getColyseus(runtime);
 		mySessionId = c.sessionId || c.room?.sessionId || "";
 		spawnBlocks(runtime);
+		connectStatus = null;
 		console.log("Joined room, session:", mySessionId);
+	},
+
+	onJoinError(runtime) {
+		console.error("Join error");
+		connectStatus = "Failed to connect. Is server running?";
 	},
 
 	onTankAdded(runtime, key, tank) {

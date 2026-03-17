@@ -64,6 +64,40 @@ nodes {
   line_break: true
 }
 nodes {
+  type: TYPE_TEXT
+  id: "connect_status"
+  position {
+    x: 480.0
+    y: 320.0
+  }
+  size {
+    x: 400.0
+    y: 100.0
+  }
+  color {
+    x: 0.667
+    y: 0.667
+    z: 0.667
+    w: 1.0
+  }
+  text: "Connecting..."
+  font: "default"
+  outline {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  shadow {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  pivot: PIVOT_CENTER
+  line_break: true
+}
+nodes {
   type: TYPE_BOX
   id: "hp_bar_bg"
   position {

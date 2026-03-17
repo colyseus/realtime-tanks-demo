@@ -10,6 +10,7 @@ global.net_session_id = "";
 // --- Player state ---
 my_tank = noone;
 winner_team = -1;
+connect_error = "";
 
 // --- Team scores ---
 team_scores = array_create(4, 0);
@@ -63,11 +64,13 @@ var net_room = global.net_room;
 
 colyseus_on_error(net_room, function(code, msg) {
     show_debug_message("Room error [" + string(code) + "]: " + msg);
+    obj_game.connect_error = "Failed to connect. Is server running?";
 });
 
 colyseus_on_leave(net_room, method(id, function(code, reason) {
     show_debug_message("Left room [" + string(code) + "]: " + reason);
     global.net_connected = false;
+    obj_game.connect_error = "Disconnected from server.";
 }));
 
 // =============================================================================

@@ -36,6 +36,9 @@ public class GameManager : MonoBehaviour
     private string announcementString = "";
     private string leaderboardString = "";
 
+    // Connection status (null = connected)
+    private string connectStatus = "Connecting...";
+
     // GUI styles (created once)
     private GUIStyle hpBarStyle, hpBgStyle, shieldBarStyle, leaderboardStyle, announcementStyle;
     private bool guiInitialized = false;
@@ -73,16 +76,19 @@ public class GameManager : MonoBehaviour
 
         try
         {
+            connectStatus = "Connecting...";
             Debug.Log($"Connecting to {serverUrl}...");
             client = new Client(serverUrl);
             room = await client.JoinOrCreate<BattleState>("battle");
             mySessionId = room.SessionId;
             Debug.Log($"Joined room {room.RoomId} as {mySessionId}");
+            connectStatus = null;
             BindRoomEvents();
         }
         catch (System.Exception e)
         {
             Debug.LogError($"Connection failed: {e.Message}\n{e.StackTrace}");
+            connectStatus = "Failed to connect. Is server running?";
         }
     }
 
@@ -555,6 +561,17 @@ public class GameManager : MonoBehaviour
     void OnGUI()
     {
         InitGUIStyles();
+
+        // ── Connection status (in-engine overlay) ──
+        if (connectStatus != null)
+        {
+            var style = new GUIStyle(GUI.skin.label);
+            style.fontSize = 24;
+            style.alignment = TextAnchor.MiddleCenter;
+            style.normal.textColor = new Color(0.67f, 0.67f, 0.67f);
+            GUI.Label(new Rect(0, 0, Screen.width, Screen.height), connectStatus, style);
+            return; // Don't draw other HUD elements while connecting
+        }
 
         // ── Per-tank health bars (world → screen) ──
         foreach (var kvp in tanks)

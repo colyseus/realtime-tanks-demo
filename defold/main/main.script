@@ -234,7 +234,11 @@ local function bind_room_events(self, room)
 	-- Bullets
 	cb:on_add("bullets", function(bullet, key)
 		local sx, sy = bullet.x * SCALE, bullet.y * SCALE
-		local id = factory.create("#bullet_factory", vmath.vector3(sx, sy, 0.2))
+		-- Compute initial rotation from travel direction (x,y → tx,ty)
+		local dx = bullet.tx - bullet.x
+		local dy = bullet.ty - bullet.y
+		local rot = vmath.quat_rotation_z(math.atan2(dy, dx) - math.pi / 2)
+		local id = factory.create("#bullet_factory", vmath.vector3(sx, sy, 0.2), rot)
 		if bullet.special then
 			sprite.play_flipbook(msg.url(nil, id, "sprite"), hash("bullet_special"))
 		end
@@ -367,7 +371,7 @@ function init(self)
 		local param = html5.run("new URLSearchParams(window.location.search).get('server') || ''")
 		if param ~= "" then
 			server_url = param
-		elseif html5.run("window.location.hostname") ~= "localhost" and html5.run("window.location.hostname") ~= "127.0.0.1" then
+		elseif not sys.get_engine_info().is_debug then
 			server_url = "wss://tanks-demo.colyseus.dev"
 		end
 	end
@@ -375,11 +379,13 @@ function init(self)
 	client:join_or_create("battle", function(err, room)
 		if err then
 			print("Connection error: " .. tostring(err))
+			msg.post("hud#gui", "connect_status", { error = "Failed to connect. Is server running?" })
 			return
 		end
 		self.room = room
 		self.my_session_id = room.session_id
 		print("Joined room: " .. room.room_id .. " as " .. room.session_id)
+		msg.post("hud#gui", "connect_status", { connected = true })
 		bind_room_events(self, room)
 	end)
 end

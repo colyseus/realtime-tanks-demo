@@ -52,7 +52,7 @@
 			"actions": [
 				{
 					"type": "script",
-					"script": "console.error(\"Join error\");"
+					"script": "globalThis.game.onJoinError(runtime);"
 				}
 			],
 			"sid": 943256789012346
