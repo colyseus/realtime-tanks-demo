@@ -172,7 +172,7 @@ public class TankGame : Game
         var callbacks = Callbacks.Get(_room);
 
         // ── Tanks ──
-        callbacks.OnAdd("tanks", (string key, TankState tank) =>
+        callbacks.OnAdd(state => state.tanks, (key, tank) =>
         {
             lock (_syncLock)
             {
@@ -190,13 +190,13 @@ public class TankGame : Game
                 };
             }
         });
-        callbacks.OnRemove("tanks", (string key, TankState _) =>
+        callbacks.OnRemove(state => state.tanks, (key, _) =>
         {
             lock (_syncLock) { _tankVisuals.Remove(key); }
         });
 
         // ── Bullets ──
-        callbacks.OnAdd("bullets", (string key, BulletState bullet) =>
+        callbacks.OnAdd(state => state.bullets, (key, bullet) =>
         {
             byte team = 0;
             lock (_syncLock)
@@ -213,17 +213,17 @@ public class TankGame : Game
                 };
             }
         });
-        callbacks.OnRemove("bullets", (string key, BulletState _) =>
+        callbacks.OnRemove(state => state.bullets, (key, _) =>
         {
             lock (_syncLock) { _bulletVisuals.Remove(key); }
         });
 
         // ── Pickables ──
-        callbacks.OnAdd("pickables", (string key, PickableState pick) =>
+        callbacks.OnAdd(state => state.pickables, (key, pick) =>
         {
             lock (_syncLock) { _pickables[key] = pick; }
         });
-        callbacks.OnRemove("pickables", (string key, PickableState _) =>
+        callbacks.OnRemove(state => state.pickables, (key, _) =>
         {
             lock (_syncLock) { _pickables.Remove(key); }
         });
