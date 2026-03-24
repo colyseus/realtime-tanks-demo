@@ -12,9 +12,9 @@ const TEAM_NAMES: Array[String] = ["Red", "Blue", "Green", "Yellow"]
 var server_url: String
 
 # Colyseus
-var client: ColyseusClient
-var room: ColyseusRoom
-var callbacks: Object  # Colyseus.callbacks(room)
+var client: Colyseus.Client
+var room: Colyseus.Room
+var callbacks: Colyseus.Callbacks
 var my_session_id: String = ""
 
 # Scene
@@ -333,8 +333,7 @@ func _connect_to_server() -> void:
 	print("[Game] Connecting to server: ", server_url)
 	connect_label.text = "Connecting to %s..." % server_url
 
-	client = Colyseus.create_client()
-	client.set_endpoint(server_url)
+	client = Colyseus.Client.new(server_url)
 
 	print("[Game] Client created, joining room 'battle'...")
 	room = client.join_or_create("battle")
@@ -374,7 +373,7 @@ func _on_room_left(code: int, _reason: String) -> void:
 
 
 func _bind_room_events() -> void:
-	callbacks = Colyseus.callbacks(room)
+	callbacks = Colyseus.Callbacks.of(room)
 
 	callbacks.on_add("tanks", _on_tank_add)
 	callbacks.on_remove("tanks", _on_tank_remove)
@@ -480,7 +479,7 @@ func _on_bullet_add(bullet: Dictionary, key: String) -> void:
 	var bullet_color := Color(1.0, 1.0, 0.4)  # default yellow
 
 	# Color by owner team
-	var state := room.get_state()
+	var state = room.get_state()
 	var state_tanks = state.get("tanks", {})
 	var owner_id: String = bullet.get("owner", "")
 	if state_tanks is Dictionary and state_tanks.has(owner_id):
@@ -618,7 +617,7 @@ func _on_winner_changed(val, _prev) -> void:
 
 
 func _update_scores() -> void:
-	var state := room.get_state()
+	var state = room.get_state()
 	var state_teams = state.get("teams", [])
 
 	var teams_data: Array[Dictionary] = []
@@ -639,7 +638,7 @@ func _update_scores() -> void:
 
 
 func _show_winner_screen(winner_team_id: int) -> void:
-	var state := room.get_state()
+	var state = room.get_state()
 	var state_tanks = state.get("tanks", {})
 	var my_tank = state_tanks.get(my_session_id) if state_tanks is Dictionary else null
 
@@ -728,9 +727,6 @@ func _send_input() -> void:
 # ── Game Loop ──
 
 func _process(delta: float) -> void:
-	# Required for web builds
-	ColyseusClient.poll()
-
 	if room:
 		_send_input()
 
@@ -812,5 +808,5 @@ func _process(delta: float) -> void:
 
 
 func _exit_tree() -> void:
-	if room and room.is_connected():
+	if room and room.connected:
 		room.leave()
