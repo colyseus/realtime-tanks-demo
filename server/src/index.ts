@@ -1,4 +1,4 @@
-import { defineRoom, defineServer, playground, Server } from "colyseus";
+import { defineRoom, defineServer, playground, monitor, Server } from "colyseus";
 import { BattleRoom } from "./rooms/BattleRoom";
 
 const port = parseInt(process.env.PORT || "2567");
@@ -9,6 +9,7 @@ const server = defineServer({
   },
   express: (app) => {
     app.use("/", playground());
+    app.use("/monitor", monitor());
   }
 });
 
